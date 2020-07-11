@@ -33,7 +33,7 @@ class ESCognitoStack(core.Stack):
         cognito.CfnUserPoolDomain(
             scope=self,
             id="cognito-user-pool-domain",
-            domain=f"{application_prefix}-domain",
+            domain=f"{application_prefix}-domain-userpool",
             user_pool_id=user_pool.ref,
         )
 

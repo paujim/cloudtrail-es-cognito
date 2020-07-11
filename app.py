@@ -8,7 +8,7 @@ app = core.App()
 es_stack = ESCognitoStack(
     scope=app,
     id="es-cognito",
-    application_prefix="elastic")
+    application_prefix="myelastic")
 
 CloudtrailStack(
     scope=app,
