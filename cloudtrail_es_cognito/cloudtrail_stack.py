@@ -31,6 +31,17 @@ class CloudtrailStack(core.Stack):
             # log_retention=logs.RetentionDays.ONE_WEEK,
             retry_attempts=0,
         )
+        fn.add_to_role_policy(
+            statement=iam.PolicyStatement(
+                actions=[
+                    "es:ESHttpGet",
+                    "es:ESHttpPut",
+                    "es:ESHttpPost",
+                    "es:ESHttpDelete"
+                ],
+                resources=["arn:aws:es:" + core.Aws.REGION + ":" +
+                           core.Aws.ACCOUNT_ID + ":domain/" + "myelastic" + "/*"]
+            ))
 
         rule = events.Rule(
             scope=self,
