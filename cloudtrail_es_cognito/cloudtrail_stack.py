@@ -33,7 +33,7 @@ class CloudtrailStack(core.Stack):
                 key="cloudtrail2ElasticSearch/main.zip",
             ),
             environment={
-                "ES_HOST": es_host,
+                "ES_HOST": "https://" + es_host,
                 "ES_REGION": core.Aws.REGION,
             },
             timeout=core.Duration.seconds(30),
