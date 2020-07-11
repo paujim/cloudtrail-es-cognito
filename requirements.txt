@@ -1,0 +1,9 @@
+aws-cdk.core
+aws-cdk.aws_lambda
+aws-cdk.aws_lambda_event_sources
+aws-cdk.aws_iam
+aws-cdk.aws_s3
+aws-cdk.aws_elasticsearch
+aws-cdk.aws_cognito
+aws-cdk.aws_events
+aws-cdk.aws_events_targets
