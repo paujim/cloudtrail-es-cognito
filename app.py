@@ -13,6 +13,7 @@ es_stack = ESCognitoStack(
 CloudtrailStack(
     scope=app,
     id="cloudtrail",
-    es_host=es_stack.es_host)
+    es_host=es_stack.es_host,
+)
 
 app.synth()

@@ -77,7 +77,7 @@ class ESCognitoStack(core.Stack):
                 "volumeSize": 20,
                 "ebsEnabled": True
             },
-            elasticsearch_version="7.1",
+            elasticsearch_version="7.4",
             domain_name=application_prefix,
             access_policies={
                 "Version": "2012-10-17",
@@ -99,7 +99,8 @@ class ESCognitoStack(core.Stack):
             },
         )
 
-        es_domain.add_property_override('CognitoOptions.Enabled', True)
+        es_domain.add_property_override(
+            'CognitoOptions.Enabled', True)
         es_domain.add_property_override(
             'CognitoOptions.IdentityPoolId', id_pool.ref)
         es_domain.add_property_override(

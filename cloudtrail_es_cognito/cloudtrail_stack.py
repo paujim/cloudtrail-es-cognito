@@ -20,10 +20,14 @@ class CloudtrailStack(core.Stack):
         fn = _lambda.Function(
             scope=self,
             id='lambda-fn',
-            runtime=_lambda.Runtime.PYTHON_3_8,
-            handler='index.handler',
+            runtime=_lambda.Runtime.GO_1_X,
+            handler='main',
             code=_lambda.Code.from_asset(path=os.path.join(
-                'lambda')),
+                'elasticSearch', "main.zip")),
+            environment={
+                "ES_HOST": es_host,
+                "ES_REGION": core.Aws.REGION,
+            },
             # log_retention=logs.RetentionDays.ONE_WEEK,
             retry_attempts=0,
         )
