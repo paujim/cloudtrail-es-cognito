@@ -14,20 +14,29 @@ from aws_cdk import (
 
 class CloudtrailStack(core.Stack):
 
-    def __init__(self, scope: core.Construct, id: str, es_host: str, **kwargs) -> None:
+    def __init__(self, scope: core.Construct, id: str, es_host: str, es_arn: str, **kwargs) -> None:
         super().__init__(scope, id, **kwargs)
+
+        bucket = s3.Bucket.from_bucket_name(
+            scope=self,
+            id="artifacts-bucket",
+            bucket_name="pj-artifacts-in-oregon",
+        )
 
         fn = _lambda.Function(
             scope=self,
             id='lambda-fn',
             runtime=_lambda.Runtime.GO_1_X,
             handler='main',
-            code=_lambda.Code.from_asset(path=os.path.join(
-                'elasticSearch', "main.zip")),
+            code=_lambda.Code.from_bucket(
+                bucket=bucket,
+                key="cloudtrail2ElasticSearch/main.zip",
+            ),
             environment={
                 "ES_HOST": es_host,
                 "ES_REGION": core.Aws.REGION,
             },
+            timeout=core.Duration.seconds(30),
             # log_retention=logs.RetentionDays.ONE_WEEK,
             retry_attempts=0,
         )
@@ -39,14 +48,13 @@ class CloudtrailStack(core.Stack):
                     "es:ESHttpPost",
                     "es:ESHttpDelete"
                 ],
-                resources=["arn:aws:es:" + core.Aws.REGION + ":" +
-                           core.Aws.ACCOUNT_ID + ":domain/" + "myelastic" + "/*"]
+                resources=[es_arn + "/*"]
             ))
 
         rule = events.Rule(
             scope=self,
             id="audit-event-rule",
-            description="rule to match all iam user accitions",
+            description="rule to match all iam user actions",
             enabled=True,
         )
 

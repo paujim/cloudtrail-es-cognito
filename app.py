@@ -14,6 +14,7 @@ CloudtrailStack(
     scope=app,
     id="cloudtrail",
     es_host=es_stack.es_host,
+    es_arn=es_stack.es_arn,
 )
 
 app.synth()

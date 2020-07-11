@@ -118,7 +118,12 @@ class ESCognitoStack(core.Stack):
         )
 
         self._es_host = es_domain.attr_domain_endpoint
+        self._es_arn = es_domain.attr_arn
 
     @property
     def es_host(self) -> str:
         return self._es_host
+
+    @property
+    def es_arn(self) -> str:
+        return self._es_arn
