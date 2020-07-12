@@ -14,7 +14,7 @@ from aws_cdk import (
 
 class ESCognitoStack(core.Stack):
 
-    def __init__(self, scope: core.Construct, id: str, application_prefix: str,  **kwargs) -> None:
+    def __init__(self, scope: core.Construct, id: str, domain_prefix: str, other_account: str,  **kwargs) -> None:
         super().__init__(scope, id, **kwargs)
 
         user_pool = cognito.CfnUserPool(
@@ -24,8 +24,9 @@ class ESCognitoStack(core.Stack):
                 allow_admin_create_user_only=True,
             ),
             policies=cognito.CfnUserPool.PoliciesProperty(
-                password_policy={"minimumLength": 8}
-            ),
+                password_policy=cognito.CfnUserPool.PasswordPolicyProperty(
+                    minimum_length=10,
+                )),
             username_attributes=["email"],
             auto_verified_attributes=["email"],
         )
@@ -33,7 +34,7 @@ class ESCognitoStack(core.Stack):
         cognito.CfnUserPoolDomain(
             scope=self,
             id="cognito-user-pool-domain",
-            domain=f"{application_prefix}-domain-userpool",
+            domain=f"{domain_prefix}-{core.Aws.ACCOUNT_ID}",
             user_pool_id=user_pool.ref,
         )
 
@@ -70,15 +71,14 @@ class ESCognitoStack(core.Stack):
         es_domain = elasticsearch.CfnDomain(
             scope=self,
             id="search-domain",
-            elasticsearch_cluster_config={
-                "instanceType": "t2.small.elasticsearch"
-            },
-            ebs_options={
-                "volumeSize": 20,
-                "ebsEnabled": True
-            },
+            elasticsearch_cluster_config=elasticsearch.CfnDomain.ElasticsearchClusterConfigProperty(
+                instance_count=2,
+                instance_type="t2.small.elasticsearch"),
+            ebs_options=elasticsearch.CfnDomain.EBSOptionsProperty(
+                ebs_enabled=True,
+                volume_size=20),
             elasticsearch_version="7.4",
-            domain_name=application_prefix,
+            domain_name=domain_prefix,
             access_policies={
                 "Version": "2012-10-17",
                 "Statement": [
@@ -93,8 +93,8 @@ class ESCognitoStack(core.Stack):
                             "es:ESHttpPost",
                             "es:ESHttpDelete"
                         ],
-                        "Resource": "arn:aws:es:" + core.Aws.REGION + ":" + core.Aws.ACCOUNT_ID + ":domain/" + application_prefix + "/*"
-                    }
+                        "Resource": "arn:aws:es:" + core.Aws.REGION + ":" + core.Aws.ACCOUNT_ID + ":domain/" + domain_prefix + "/*"
+                    },
                 ]
             },
         )
@@ -117,13 +117,41 @@ class ESCognitoStack(core.Stack):
             }
         )
 
-        self._es_host = es_domain.attr_domain_endpoint
-        self._es_arn = es_domain.attr_arn
+        es_external_role = iam.Role(
+            scope=self,
+            id="logger-role",
+            assumed_by=iam.CompositePrincipal(
+                iam.ServicePrincipal("lambda.amazonaws.com"),
+                iam.AccountPrincipal(other_account),
+            ),
+            description="role to use elastic search assumed by lambda",
+            inline_policies={
+                "es_policy": iam.PolicyDocument(statements=[
+                    iam.PolicyStatement(
+                        actions=[
+                            "es:ESHttpPost",
+                        ],
+                        resources=[
+                            es_domain.attr_arn + "/*",
+                        ],
+                    )]),
+            },
+        )
 
-    @property
-    def es_host(self) -> str:
-        return self._es_host
+        core.CfnOutput(
+            scope=self,
+            id="es-host",
+            value=es_domain.attr_domain_endpoint,
+        )
 
-    @property
-    def es_arn(self) -> str:
-        return self._es_arn
+        core.CfnOutput(
+            scope=self,
+            id="es-region",
+            value=core.Aws.REGION,
+        )
+
+        core.CfnOutput(
+            scope=self,
+            id="es-external-role",
+            value=es_external_role.role_arn,
+        )

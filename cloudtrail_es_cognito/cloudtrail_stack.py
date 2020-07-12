@@ -1,4 +1,5 @@
 import os
+import typing
 from aws_cdk import (
     core,
     aws_events as events,
@@ -14,7 +15,7 @@ from aws_cdk import (
 
 class CloudtrailStack(core.Stack):
 
-    def __init__(self, scope: core.Construct, id: str, es_host: str, es_arn: str, **kwargs) -> None:
+    def __init__(self, scope: core.Construct, id: str, es_host: str, es_region: str,  es_external_role: str, **kwargs) -> None:
         super().__init__(scope, id, **kwargs)
 
         bucket = s3.Bucket.from_bucket_name(
@@ -35,6 +36,7 @@ class CloudtrailStack(core.Stack):
             environment={
                 "ES_HOST": "https://" + es_host,
                 "ES_REGION": core.Aws.REGION,
+                "ES_ROLE": es_external_role,
             },
             timeout=core.Duration.seconds(30),
             # log_retention=logs.RetentionDays.ONE_WEEK,
@@ -43,12 +45,9 @@ class CloudtrailStack(core.Stack):
         fn.add_to_role_policy(
             statement=iam.PolicyStatement(
                 actions=[
-                    "es:ESHttpGet",
-                    "es:ESHttpPut",
-                    "es:ESHttpPost",
-                    "es:ESHttpDelete"
+                    "sts:AssumeRole",
                 ],
-                resources=[es_arn + "/*"]
+                resources=["*"]
             ))
 
         rule = events.Rule(
