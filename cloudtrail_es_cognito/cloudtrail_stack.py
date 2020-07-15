@@ -35,7 +35,7 @@ class CloudtrailStack(core.Stack):
             ),
             environment={
                 "ES_HOST": "https://" + es_host,
-                "ES_REGION": core.Aws.REGION,
+                "ES_REGION": es_region,
                 "ES_ROLE": es_external_role,
             },
             timeout=core.Duration.seconds(30),
@@ -47,7 +47,7 @@ class CloudtrailStack(core.Stack):
                 actions=[
                     "sts:AssumeRole",
                 ],
-                resources=["*"]
+                resources=[es_external_role]
             ))
 
         rule = events.Rule(

@@ -25,7 +25,7 @@ class ESCognitoStack(core.Stack):
             ),
             policies=cognito.CfnUserPool.PoliciesProperty(
                 password_policy=cognito.CfnUserPool.PasswordPolicyProperty(
-                    minimum_length=10,
+                    minimum_length=20,
                 )),
             username_attributes=["email"],
             auto_verified_attributes=["email"],
@@ -73,7 +73,12 @@ class ESCognitoStack(core.Stack):
             id="search-domain",
             elasticsearch_cluster_config=elasticsearch.CfnDomain.ElasticsearchClusterConfigProperty(
                 instance_count=2,
-                instance_type="t2.small.elasticsearch"),
+                instance_type="m5.large.elasticsearch",
+            ),
+            node_to_node_encryption_options=elasticsearch.CfnDomain.NodeToNodeEncryptionOptionsProperty(
+                enabled=True),
+            encryption_at_rest_options=elasticsearch.CfnDomain.EncryptionAtRestOptionsProperty(
+                enabled=True),
             ebs_options=elasticsearch.CfnDomain.EBSOptionsProperty(
                 ebs_enabled=True,
                 volume_size=20),
